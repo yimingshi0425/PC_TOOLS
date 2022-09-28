@@ -1036,7 +1036,6 @@ namespace BCIM_Tool
             {
                 Console.WriteLine(ex.Message);
             }
-
         }
 
         /*關閉串口*/

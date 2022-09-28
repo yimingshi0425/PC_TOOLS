@@ -6,7 +6,7 @@
         xmlns:xctk1="http://schemas.xceed.com/wpf/xaml/toolkit"
         xmlns:local="clr-namespace:BCIM_Tool" 
         mc:Ignorable="d"
-        Title="BCIM Tool" Height="864" Width="1536" WindowStartupLocation="CenterScreen" Closing="Window_Closing" FontSize="30" ResizeMode="CanResizeWithGrip" WindowState="Maximized">
+        Title="PC Tool" Height="864" Width="1536" WindowStartupLocation="CenterScreen" Closing="Window_Closing" FontSize="40" ResizeMode="CanResizeWithGrip" WindowState="Maximized">
     <Grid>
 
 
