@@ -6,11 +6,15 @@
         xmlns:xctk1="http://schemas.xceed.com/wpf/xaml/toolkit"
         xmlns:local="clr-namespace:BCIM_Tool" 
         mc:Ignorable="d"
-        Title="PC Tool" Height="864" Width="1536" WindowStartupLocation="CenterScreen" Closing="Window_Closing" FontSize="40" ResizeMode="CanResizeWithGrip" WindowState="Maximized">
+        Title="PC Tool V1.10" Height="864" Width="1536" WindowStartupLocation="CenterScreen" Closing="Window_Closing" FontSize="40" ResizeMode="CanResizeWithGrip" WindowState="Maximized">
     <Grid>
-
-
-        <TabControl Margin="0" Background="{x:Null}" Foreground="{x:Null}" BorderBrush="{x:Null}">
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <TabControl Margin="0,0,-0.4,0.4" Background="{x:Null}" Foreground="{x:Null}" BorderBrush="{x:Null}">
 
             <TabItem Header="General" FontSize="25">
                 <Grid>
@@ -23,8 +27,8 @@
                     <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Vertical">
 
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,30,0,0">
-                            <Label Content="Port" Margin="10,20,0,0" Height="50" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontSize="30" Padding="5"/>
-                            <ComboBox x:Name="CB_port" Width="265" Margin="30,20,0,5" Height="60" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" SelectionChanged="CB_port_SelectionChanged" DropDownOpened="CB_port_DropDownOpened" HorizontalAlignment="Center" FontSize="30"/>
+                            <Label Content="Port" Margin="10,16,0,0" Height="50" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontSize="30" Padding="5"/>
+                            <ComboBox x:Name="CB_port" Width="265" Margin="30,15,0,5" Height="60" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" SelectionChanged="CB_port_SelectionChanged" DropDownOpened="CB_port_DropDownOpened" HorizontalAlignment="Center" FontSize="30"/>
                         </StackPanel>
 
                         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -114,7 +118,7 @@
                                     <Label Content="LED2" Margin="12,0,0,0"/>
                                     <Label Content="LED3" Margin="12,0,0,0"/>
                                     <Label Content="LED4" Margin="12,0,0,0"/>
-                                    <Label Content="LED5" Margin="12,0,0,0"/>
+                                    <Label x:Name="LB_led5" Content="LED5" Margin="12,0,0,0"/>
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
                                     <Rectangle x:Name="LedFail_1" Stroke="Black"  Fill="Black" Height="80" Width="80" VerticalAlignment="Bottom"/>
@@ -247,7 +251,7 @@
                             </StackPanel>
                         </GroupBox>
 
-                        <TextBox x:Name="TB_monitor" Margin="0,0,-0.4,0" Height="470" VerticalScrollBarVisibility="Auto" FontSize="18"/>
+                        <TextBox x:Name="TB_development_monitor" Margin="0,0,-0.4,0" Height="470" VerticalScrollBarVisibility="Auto" FontSize="18"/>
 
                         <StackPanel Orientation="Horizontal" Height="40" VerticalAlignment="Center" Margin="0,0,-0.4,0">
                             <TextBox x:Name="TB_send_command" Text="55 B4 55 D0 00 FF FF FF FF FF" VerticalContentAlignment="Center" Width="422" HorizontalContentAlignment="Center" Margin="0,5,0,0" TextChanged="TB_send_command_TextChanged" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Top"/>
@@ -308,6 +312,68 @@
             </TabItem>
 
             <TabItem Header="Diagnostic" FontSize="25">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="731*"/>
+                        <ColumnDefinition Width="793*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions >
+                        <RowDefinition Height="283*"/>
+                        <RowDefinition Height="111*"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Orientation="Vertical" Grid.Column="0" Grid.Row="0" Margin="0">
+                        <StackPanel Orientation="Horizontal">
+                            <Button  x:Name="BT_get_data" Content="Get Data" Padding="0" Background="#FFDDDDDD" Height="60"  BorderBrush="White" HorizontalAlignment="Center" VerticalAlignment="Center" Width="165" Click="BT_get_data_Click"/>
+                            <Button  x:Name="BT_clear_data"  Content="Clear Data"  Background="#FFDDDDDD" Height="60" BorderBrush="White" HorizontalAlignment="Center" VerticalAlignment="Center" Width="165" Click="BT_clear_data_Click"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal">
+                            <Label Content="Diagnostics for C0 : ECU Information ( From CS.11718)" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="0,20,0,0" FontSize="25" FontWeight="Bold"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Height="91" Margin="0,0,0.2,0">
+                            <StackPanel Orientation="Vertical" Margin="30,0,0,0">
+                                <Label Content="Support SID :"/>
+                                <Label Content="S/W Version :"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Vertical">
+                                <Label x:Name="LB_support_sid" Content="B2 C2 B7 C4 C5 C6 C7 C8 C9 CA CB"/>
+                                <Label x:Name="LB_sw_version" Content="V1.05"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal">
+                            <Label Content="Diagnostics for C7 C8 : ECU Information ( From CS.11718)" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="0,20,0,0" FontSize="25" FontWeight="Bold"/>
+
+                        </StackPanel>
+                        
+                        <StackPanel Orientation="Horizontal">
+                            <Label Content="P/N :" Margin="30,10,0,0"/>
+                            <Label x:Name="LB_p_n" Content="456454676587" Margin="0,10,0,0"/>
+                        </StackPanel>
+
+                    </StackPanel>
+
+                    <StackPanel Orientation="Vertical" Grid.Column="1" Grid.Row="0">
+                        <TextBox x:Name="TB_Diagnostic_monitor" Text="0"  FontSize="20" VerticalScrollBarVisibility="Auto" Margin="0,10,0,0" Height="556.4" />
+                    </StackPanel>
+
+                    <StackPanel Orientation="Vertical" Grid.Column="1" Grid.Row="1">
+                        <StackPanel Orientation="Horizontal" Height="65" Margin="0,0,-0.2,0">
+                            <TextBox x:Name="TB_Diagnostic_send_command" Text="55 B4 55 D0 00 FF FF FF FF FF" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" VerticalAlignment="Center" TextChanged="TB_Diagnostic_send_command_TextChanged"/>
+                            <Label   x:Name="LB_Diagnostic_send_checksum" Content="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"  HorizontalAlignment="Center" Margin="5,0,0,0" VerticalAlignment="Center"/>
+                            <Button  x:Name="BT_Diagnostic_send_command" Content="send"  Width="251" BorderBrush="White" HorizontalAlignment="Center" VerticalAlignment="Center" Height="36" Margin="8,10,0,10" Click="BT_Diagnostic_send_command_Click" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Height="65" Margin="0,0,-0.2,0">
+                            <ComboBox x:Name="CB_diagnostic_commands" FontSize="25" Width="370" SelectionChanged="CB_diagnostic_commands_SelectionChanged" Height="33" Grid.Column="1" Grid.Row="1" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Hex Decoder" FontSize="25">
 
             </TabItem>
 

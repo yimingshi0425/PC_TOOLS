@@ -17,6 +17,7 @@ using System.IO.Ports;
 using System.Management;
 using System.Collections;
 using System.IO;
+using System.Threading;
 
 namespace BCIM_Tool
 {
@@ -37,7 +38,7 @@ namespace BCIM_Tool
 
         int rr = 0, gg = 0, br = 0, bg = 0, bb = 0;/*LED VF Parameter*/
         int rr_min = 1000, gg_min = 1000, br_min = 1000, bg_min = 1000, bb_min = 1000;
-        int rr_max = 0, gg_max = 0, br_max = 0, bg_max = 0, bb_max = 0;      
+        int rr_max = 0, gg_max = 0, br_max = 0, bg_max = 0, bb_max = 0;
         int VF = 0, ledFail_1 = 0, ledFail_2 = 0, ledFail_3 = 0, ledFail_4 = 0;
         string send = "", read = "", error = "";
         int sendConut = 0, readCount = 0, timeoutCount = 0;
@@ -48,6 +49,13 @@ namespace BCIM_Tool
         string[] hexString;
         string checksumMode = "Enhanced";
         bool watdogStart = false;
+        bool diagnosticStatus = false;
+
+        string supportSID_1 = "";
+        string supportSID_2 = "";
+        string p_n_1 = "", p_n_2 = "";
+        string sw_version = "";
+
 
         public MainWindow()
         {
@@ -65,6 +73,8 @@ namespace BCIM_Tool
             LED_4.Stroke = Brushes.Green;
             LED_5.Fill = Brushes.White;
             LED_5.Stroke = Brushes.White;
+
+            LB_led5.Visibility = Visibility.Hidden;
 
             LedFail_5.Visibility = Visibility.Hidden;
 
@@ -88,11 +98,23 @@ namespace BCIM_Tool
             CB_model.Items.Add("2024JL BCIM");
             CB_model.SelectedIndex = 1;
 
+            /*Use at Tab development*/
             CB_diagnostic_command.Items.Add("55 3C 62 06 C0 FF FF FF FF FF");
             CB_diagnostic_command.Items.Add("55 3C 62 06 C7 FF FF FF FF FF");
             CB_diagnostic_command.Items.Add("55 3C 62 06 C8 FF FF FF FF FF");
-            CB_diagnostic_command.Items.Add("55 B4 55 D0 00 FF FF FF FF FF");           
+            CB_diagnostic_command.Items.Add("55 B4 55 D0 00 FF FF FF FF FF");
+            CB_diagnostic_command.Items.Add("55 B4 55 D8 00 FF FF FF FF FF");
+            CB_diagnostic_command.Items.Add("55 B4 55 C8 00 FF FF FF FF FF");
             CB_diagnostic_command.SelectedIndex = 3;
+
+            /*Use at Tab diagnostic*/
+            CB_diagnostic_commands.Items.Add("55 3C 62 06 C0 FF FF FF FF FF");
+            CB_diagnostic_commands.Items.Add("55 3C 62 06 C7 FF FF FF FF FF");
+            CB_diagnostic_commands.Items.Add("55 3C 62 06 C8 FF FF FF FF FF");
+            CB_diagnostic_commands.Items.Add("55 B4 55 D0 00 FF FF FF FF FF");
+            CB_diagnostic_commands.Items.Add("55 B4 55 D8 00 FF FF FF FF FF");
+            CB_diagnostic_commands.Items.Add("55 B4 55 C8 00 FF FF FF FF FF");
+            CB_diagnostic_commands.SelectedIndex = 2;
 
             CB_led5_blink.Visibility = Visibility.Hidden;
 
@@ -104,12 +126,12 @@ namespace BCIM_Tool
                 CB_port.Items.Add(port);
             }
             serialPort.DataReceived += SerialPort_DataReceived;
-            
+
 
             Task.Run(() => SendCommand());
             Task.Run(() => UIUpdate());
             Task.Run(() => TimeOutWatchDog());
-
+            Task.Run(() => SendDiagnosticCommand());
 
         }
 
@@ -145,7 +167,7 @@ namespace BCIM_Tool
 
                     Dispatcher.Invoke(new Action(() =>
                     {
-                        if(CB_led1_blink.IsChecked == true)
+                        if (CB_led1_blink.IsChecked == true)
                         {
                             TxBuf_34H_2024JL[2] = TxBuf_34H_2024JL[2] | (0x02 << 0);
                         }
@@ -216,7 +238,7 @@ namespace BCIM_Tool
                                 TxBuf_34H_2024JL[2] = 0;
                             }
                         }
-                        
+
                         switch (CB_color.SelectedIndex)
                         {
                             case 0://Green
@@ -310,15 +332,17 @@ namespace BCIM_Tool
                     {
                         if (RB_roll_mode.IsChecked == true)
                         {
-                            TB_monitor.AppendText(GetTime() + "\tS => " + send + "\n");
-                            TB_monitor.ScrollToEnd();
+                            TB_development_monitor.AppendText(GetTime() + "\tS => " + send + "\n");
+                            TB_development_monitor.ScrollToEnd();
                         }
                         else if (RB_update_mode.IsChecked == true)
                         {
-                            TB_monitor.Text = GetTime() + "\tS => " + send + "\n";
+                            TB_development_monitor.Text = GetTime() + "\tS => " + send + "\n";
                         }
                         TB_emc_monitor.AppendText(GetTime() + "\tS => " + send + "\n");
                         TB_emc_monitor.ScrollToEnd();
+                        TB_Diagnostic_monitor.AppendText(GetTime() + "\tS => " + send + "\n");
+                        TB_Diagnostic_monitor.ScrollToEnd();
 
                         LB_send_count.Content = "TX Count => " + sendConut.ToString();
                         WriteToFile(DateTime.Now + " Send => " + send + "\n");
@@ -328,10 +352,98 @@ namespace BCIM_Tool
             }
         }
 
+        public async Task SendDiagnosticCommand()
+        {
+            int count = 0;
+            for (; ; )
+            {
+                try
+                {
+                    if (diagnosticStatus)
+                    {                        
+                        if (serialPort.IsOpen)
+                        {
+                            send = "";
+                            switch (count)
+                            {
+                                case 0:
+                                    send = "55 3C 62 06 C0 FF FF FF FF FF";
+                                    break;
+                                case 1:
+                                    send = "55 3C 62 06 C0 FF FF FF FF FF";
+                                    break;
+                                case 2:
+                                    send = "55 3C 62 06 C7 FF FF FF FF FF";
+                                    break;
+                                case 3:
+                                    send = "55 3C 62 06 C8 FF FF FF FF FF";
+                                    break;
+                            }
+                            hexString = send.Split(' ');
+                            int[] temp = new int[11];
+
+                            for (int j = 0; j < hexString.Length; j++)
+                            {
+                                temp[j] = Convert.ToByte(hexString[j], 16);
+                            }
+
+                            if (hexString[1] == "3C")
+                            {
+                                temp[10] = CalCheckSum(0xB4, temp, false);
+                            }
+
+                            for (int j = 0; j < output.Length; j++)
+                            {
+                                output[j] = Convert.ToByte(temp[j]);
+                            }
+
+                            send += " ";
+                            send += output[10].ToString("X2");
+                            serialPort.Write(output, 0, output.Length);
+                            sendConut += 1;
+
+                            
+                            
+
+                            Dispatcher.Invoke(new Action(() =>
+                            {
+                                LB_send_count.Content = "TX Count => " + sendConut.ToString();
+                                TB_development_monitor.AppendText(GetTime() + "\tS => " + send + "\n");
+                                TB_development_monitor.ScrollToEnd();
+                                TB_emc_monitor.AppendText(GetTime() + "\tS => " + send + "\n");
+                                TB_emc_monitor.ScrollToEnd();
+                                TB_Diagnostic_monitor.AppendText(GetTime() + "\tTX => " + send + "\n");
+                                TB_Diagnostic_monitor.ScrollToEnd();
+
+                                if(count == 3)
+                                {
+                                    
+                                }
+                                
+                            }));
+
+                            count++;
+                            if (count > 3)
+                            {
+                                count = 0;
+                                diagnosticStatus = false;
+                            }
+                        }
+                    }                    
+                    await Task.Delay(100);
+                }
+                catch (Exception)
+                {
+
+                }
+
+            }
+        }
+
         /*接收訊號Timeout看門狗*/
         public async Task TimeOutWatchDog()
         {
-            for(; ; )
+            for (; ; )
             {
                 try
                 {
@@ -343,29 +455,28 @@ namespace BCIM_Tool
                         {
                             Console.WriteLine("Timeout");
                             timeoutCount++;
-                        }                                           
+                        }
                     }
                     else
                     {
-                        
+
                     }
-                   
+
                 }
                 catch (Exception)
                 {
 
                 }
-                
             }
         }
 
         /*更新UI*/
         public async Task UIUpdate()
         {
-            for ( ; ; )
+            for (; ; )
             {
                 Dispatcher.Invoke(new Action(() =>
-                {                 
+                {
                     switch (CB_color.SelectedIndex)
                     {
                         case 0:
@@ -507,6 +618,7 @@ namespace BCIM_Tool
 
                     LB_timeout_count.Content = timeoutCount.ToString();
                     LB_send_checksum.Content = output[10].ToString("X2");
+                    LB_Diagnostic_send_checksum.Content = output[10].ToString("X2");
                 }));
                 await Task.Delay(100);
             }
@@ -517,7 +629,7 @@ namespace BCIM_Tool
         {
             watdogStart = false;
             serialPort.Read(buffer, 0, 11);
-                        
+
             //foreach (int i in buffer)
             //{
             //    Console.Write(i.ToString("x2") + " ");
@@ -532,7 +644,7 @@ namespace BCIM_Tool
             }
             //Console.WriteLine("R => " + read);
 
-            
+
             Dispatcher.Invoke(new Action(() =>
             {
                 if (serialPort.IsOpen)
@@ -540,28 +652,35 @@ namespace BCIM_Tool
                     /*When "readDataStatus" == true => "No Monitor" is Checked*/
                     if (readDataStatus)
                     {
+                        //Detect PID = 7D
+                        if (buffer[1] == 125)
+                        {
+                            Diagnostic();
+                        }
+                        
                         ErrorTest();
 
                         if (RB_roll_mode.IsChecked == true)
                         {
-                            TB_monitor.AppendText(GetTime() + "\tR => " + read + error + "\n");
-                            TB_monitor.ScrollToEnd();
+                            TB_development_monitor.AppendText(GetTime() + "\tR => " + read + error + "\n");
+                            TB_development_monitor.ScrollToEnd();
                         }
                         else if (RB_update_mode.IsChecked == true)
                         {
-                            TB_monitor.Text = GetTime() + "\tR => " + read + error + "\n";
+                            TB_development_monitor.Text = GetTime() + "\tR => " + read + error + "\n";
                         }
                         TB_emc_monitor.AppendText(GetTime() + "\tR => " + read + error + "\n");
                         TB_emc_monitor.ScrollToEnd();
+                        TB_Diagnostic_monitor.AppendText(GetTime() + "\tR => " + read + error + "\n");
+                        TB_Diagnostic_monitor.ScrollToEnd();
 
                         ShowLEDFail();
+                        ShowLEDVF();
+
+                        LB_read_count.Content = "RX Count => " + readCount.ToString();
+                        /*檔案寫入儲存*/
+                        WriteToFile(DateTime.Now + " Read => " + read + "\n");
                     }
-                    
-                    ShowLEDVF();
-                                                          
-                    LB_read_count.Content = "RX Count => " + readCount.ToString();
-                    /*檔案寫入儲存*/ 
-                    WriteToFile(DateTime.Now + " Read => " + read + "\n");
                 }
             }));
         }
@@ -570,9 +689,61 @@ namespace BCIM_Tool
         public string GetTime()
         {
             string time = DateTime.Now.Year + "/" + DateTime.Now.Month + "/" + DateTime.Now.Day + " "
-                        + DateTime.Now.Hour + ":" + DateTime.Now.Minute + ":" 
+                        + DateTime.Now.Hour + ":" + DateTime.Now.Minute + ":"
                         + DateTime.Now.Second + ":" + DateTime.Now.Millisecond;
             return time;
+        }
+
+        /*Diagnostic*/
+        public void Diagnostic()
+        {
+            switch (buffer[4])
+            {
+                case 0x00:
+                    supportSID_1 = "";
+                    supportSID_2 = "";                   
+                    sw_version = "";
+                    byte[] b5 = { buffer[5] };
+                    byte[] b6 = { buffer[6] };
+                    BitArray bits_5 = new BitArray(b5);
+                    BitArray bits_6 = new BitArray(b6);
+                    
+                    if (bits_5[0]) supportSID_1 += "B2 ";
+                    if (bits_5[1]) supportSID_1 += "C2 ";
+                    if (bits_5[2]) supportSID_1 += "B7 ";
+                    if (bits_5[3]) supportSID_1 += "C4 ";
+                    if (bits_5[4]) supportSID_1 += "C5 ";
+                    if (bits_5[5]) supportSID_1 += "C6 ";
+                    if (bits_5[6]) supportSID_1 += "C7 ";
+                    if (bits_5[7]) supportSID_1 += "C8 ";
+                    if (bits_6[0]) supportSID_2 += "CA ";
+                    if (bits_6[1]) supportSID_2 += "CB ";
+
+                    sw_version += "V";
+                    sw_version += buffer[8].ToString();
+                    sw_version += ".";
+                    sw_version += buffer[9].ToString("X2");
+                    break;
+                case 0x07:
+                    p_n_1 = "";                    
+                    p_n_1 += buffer[5].ToString("X2");
+                    p_n_1 += buffer[6].ToString("X2");
+                    p_n_1 += buffer[7].ToString("X2");
+                    break;
+                case 0x08:
+                    p_n_2 = "";
+                    p_n_2 += buffer[5].ToString("X2");
+                    p_n_2 += HexStr2ASCII(buffer[6].ToString("X2"));
+                    p_n_2 += HexStr2ASCII(buffer[7].ToString("X2"));
+
+                    LB_support_sid.Content = supportSID_1 + supportSID_2;
+                    LB_sw_version.Content = sw_version;
+                    LB_p_n.Content = p_n_1 + p_n_2;
+
+                    break;
+            }
+            
+            
         }
 
         /*Error Test*/
@@ -683,7 +854,7 @@ namespace BCIM_Tool
 
             bool f1 = false, f2 = false, f3 = false, f4 = false;
 
-            /*Led 1*/           
+            /*Led 1*/
             ledFail_1 = buffer[4] & 0x03;
             LB_led1_fail_code.Content = ledFail_1.ToString();
             switch (ledFail_1)
@@ -785,7 +956,7 @@ namespace BCIM_Tool
 
             if (f1 == true | f2 == true | f3 == true | f4 == true)
             {
-                ledFailStatus = true;                
+                ledFailStatus = true;
             }
             else
             {
@@ -797,7 +968,7 @@ namespace BCIM_Tool
         /*顯示LED VF*/
         public void ShowLEDVF()
         {
-            if(CB_vf_monitor.IsChecked == true)
+            if (CB_vf_monitor.IsChecked == true)
             {
                 VF = (buffer[8] << 8) + buffer[9];
 
@@ -856,7 +1027,7 @@ namespace BCIM_Tool
                     LB_BB_max.Content = bb_max.ToString();
                     //Console.WriteLine("BB => " + VF);
                 }
-            }            
+            }
         }
 
         /*顯示LED溫度*/
@@ -883,6 +1054,32 @@ namespace BCIM_Tool
             byte[] bytes = new byte[1];
             bits.CopyTo(bytes, 0);
             return bytes[0];
+        }
+
+        /*Hex string轉換ASCII string*/
+        public string HexStr2ASCII(string hex_str)
+        {
+            string result = "";
+            string tmp;
+
+            for (int i = 0; i < hex_str.Length; i += 2)
+            {
+                tmp = hex_str.Substring(i, 2);
+                result += Convert.ToChar(Convert.ToUInt32(tmp, 16));
+            }
+            return result;
+        }
+
+        /*ASCII string轉換Hex string*/
+        public string ASCII2HexStr(string str)
+        {
+            string result = "";
+
+            for (int i = 0; i < str.Length; i++)
+            {
+                result += Convert.ToInt32(str[i]).ToString("X");
+            }
+            return result;
         }
 
         /*計算PID*/
@@ -944,7 +1141,7 @@ namespace BCIM_Tool
                 }
                 result = (-result - 1) & 0xFF;
                 return Convert.ToByte(result);
-            }            
+            }
         }
 
         /*計算Checksum*/
@@ -1109,7 +1306,7 @@ namespace BCIM_Tool
         {
             try
             {
-                
+
             }
             catch (Exception)
             {
@@ -1144,7 +1341,7 @@ namespace BCIM_Tool
         {
             try
             {
-                
+
             }
             catch (Exception)
             {
@@ -1157,6 +1354,18 @@ namespace BCIM_Tool
             try
             {
                 TB_send_command.Text = CB_diagnostic_command.SelectedItem.ToString();
+            }
+            catch (Exception)
+            {
+
+            }
+        }
+
+        private void CB_diagnostic_commands_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                TB_Diagnostic_send_command.Text = CB_diagnostic_commands.SelectedItem.ToString();
             }
             catch (Exception)
             {
@@ -1204,11 +1413,11 @@ namespace BCIM_Tool
                 {
                     startStatus = true;
                     BT_start_stop.Content = "Stop";
-                }                
+                }
             }
             catch (Exception)
             {
-                
+
             }
         }
 
@@ -1234,12 +1443,12 @@ namespace BCIM_Tool
                     send += hexString[i] + " ";
                     temp[i] = Convert.ToByte(hexString[i], 16);
                 }
-                
-                if(hexString[1] == "3C")
+
+                if (hexString[1] == "3C")
                 {
                     /*Classic Checksum*/
                     temp[10] = CalCheckSum(0xB4, temp, false);
-                    checksumMode = "Classic";                    
+                    checksumMode = "Classic";
                 }
                 else
                 {
@@ -1248,6 +1457,48 @@ namespace BCIM_Tool
                     checksumMode = "Enhanced";
                 }
                 Console.WriteLine(checksumMode);
+
+                for (int i = 0; i < output.Length; i++)
+                {
+                    output[i] = Convert.ToByte(temp[i]);
+                    //Console.Write(output[i].ToString("X2"));
+                    //Console.Write(" ");
+                }
+                send += output[10].ToString("X2");
+                //Console.WriteLine();
+                //Console.WriteLine("-----------------------------------------------");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        private void TB_Diagnostic_send_command_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                send = "";
+                var inputStr = TB_Diagnostic_send_command.Text;
+                hexString = inputStr.Split(' ');
+                int[] temp = new int[11];
+
+                for (int i = 0; i < hexString.Length; i++)
+                {
+                    send += hexString[i] + " ";
+                    temp[i] = Convert.ToByte(hexString[i], 16);
+                }
+
+                if (hexString[1] == "3C")
+                {
+                    /*Classic Checksum*/
+                    temp[10] = CalCheckSum(0xB4, temp, false);
+                }
+                else
+                {
+                    /*Enhanced Checksum*/
+                    temp[10] = CalCheckSum(0xB4, temp, true);
+                }
 
                 for (int i = 0; i < output.Length; i++)
                 {
@@ -1305,7 +1556,7 @@ namespace BCIM_Tool
         {
             try
             {
-                TB_monitor.Text = "";
+                TB_development_monitor.Text = "";
             }
             catch (Exception)
             {
@@ -1319,22 +1570,65 @@ namespace BCIM_Tool
             {
                 if (serialPort.IsOpen)
                 {
-                    if(checksumMode == "Enhanced")
-                    {
-                        serialPort.Write(output, 0, output.Length);
-                    }
-                    else if(checksumMode == "Classic")
-                    {
-                        //byte[] t = { 0x3D };
-                        serialPort.Write(output, 0, output.Length);
-                        //serialPort.Write(t, 0, t.Length);
-                    }
-                    
+                    serialPort.Write(output, 0, output.Length);
                     sendConut += 1;
                     LB_send_count.Content = "TX Count => " + sendConut.ToString();
-                    TB_monitor.AppendText(GetTime() + "\tS => " + send + "\n");
-                    TB_monitor.ScrollToEnd();
+                    TB_development_monitor.AppendText(GetTime() + "\tS => " + send + "\n");
+                    TB_development_monitor.ScrollToEnd();
+                    TB_emc_monitor.AppendText(GetTime() + "\tS => " + send + "\n");
+                    TB_emc_monitor.ScrollToEnd();
+                    TB_Diagnostic_monitor.AppendText(GetTime() + "\tS => " + send + "\n");
+                    TB_Diagnostic_monitor.ScrollToEnd();
                 }
+            }
+            catch (Exception)
+            {
+
+            }
+        }
+
+        private void BT_Diagnostic_send_command_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (serialPort.IsOpen)
+                {
+                    serialPort.Write(output, 0, output.Length);
+                    sendConut += 1;
+                    LB_send_count.Content = "TX Count => " + sendConut.ToString();
+                    TB_development_monitor.AppendText(GetTime() + "\tS => " + send + "\n");
+                    TB_development_monitor.ScrollToEnd();
+                    TB_emc_monitor.AppendText(GetTime() + "\tS => " + send + "\n");
+                    TB_emc_monitor.ScrollToEnd();
+                    TB_Diagnostic_monitor.AppendText(GetTime() + "\tS => " + send + "\n");
+                    TB_Diagnostic_monitor.ScrollToEnd();
+                }
+            }
+            catch (Exception)
+            {
+
+            }
+        }
+
+        private void BT_get_data_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {             
+                diagnosticStatus = true;
+            }
+            catch (Exception)
+            {
+
+            }
+        }
+
+        private void BT_clear_data_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                LB_support_sid.Content = "";
+                LB_sw_version.Content = "";
+                LB_p_n.Content = "";
             }
             catch (Exception)
             {
@@ -1372,7 +1666,7 @@ namespace BCIM_Tool
                     ledState_2 = true;
                 }
                 else
-                {                    
+                {
                     ledState_2 = false;
                 }
             }
