@@ -140,6 +140,7 @@ namespace BCIM_Tool
             try
             {
                 startStatus = false;
+                watdogStart = false;
                 ClosePort();
             }
             catch (Exception)
@@ -319,6 +320,7 @@ namespace BCIM_Tool
                         sendConut += 1;
                         watdogStart = true;
                     }
+                    
 
                     send = "";
                     for (int i = 0; i < 11; i++)
@@ -332,16 +334,16 @@ namespace BCIM_Tool
                     {
                         if (RB_roll_mode.IsChecked == true)
                         {
-                            TB_development_monitor.AppendText(GetTime() + "\tS => " + send + "\n");
+                            TB_development_monitor.AppendText(GetTime() + "\tTX => " + send + "\n");
                             TB_development_monitor.ScrollToEnd();
                         }
                         else if (RB_update_mode.IsChecked == true)
                         {
-                            TB_development_monitor.Text = GetTime() + "\tS => " + send + "\n";
+                            TB_development_monitor.Text = GetTime() + "\tTX => " + send + "\n";
                         }
-                        TB_emc_monitor.AppendText(GetTime() + "\tS => " + send + "\n");
+                        TB_emc_monitor.AppendText(GetTime() + "\tTX => " + send + "\n");
                         TB_emc_monitor.ScrollToEnd();
-                        TB_Diagnostic_monitor.AppendText(GetTime() + "\tS => " + send + "\n");
+                        TB_Diagnostic_monitor.AppendText(GetTime() + "\tTX => " + send + "\n");
                         TB_Diagnostic_monitor.ScrollToEnd();
 
                         LB_send_count.Content = "TX Count => " + sendConut.ToString();
@@ -408,9 +410,9 @@ namespace BCIM_Tool
                             Dispatcher.Invoke(new Action(() =>
                             {
                                 LB_send_count.Content = "TX Count => " + sendConut.ToString();
-                                TB_development_monitor.AppendText(GetTime() + "\tS => " + send + "\n");
+                                TB_development_monitor.AppendText(GetTime() + "\tTX => " + send + "\n");
                                 TB_development_monitor.ScrollToEnd();
-                                TB_emc_monitor.AppendText(GetTime() + "\tS => " + send + "\n");
+                                TB_emc_monitor.AppendText(GetTime() + "\tTX => " + send + "\n");
                                 TB_emc_monitor.ScrollToEnd();
                                 TB_Diagnostic_monitor.AppendText(GetTime() + "\tTX => " + send + "\n");
                                 TB_Diagnostic_monitor.ScrollToEnd();
@@ -657,24 +659,31 @@ namespace BCIM_Tool
                         {
                             Diagnostic();
                         }
-                        
-                        ErrorTest();
+
+                        if (buffer[1] != 125)
+                        {
+                            ErrorTest();
+                        }
 
                         if (RB_roll_mode.IsChecked == true)
                         {
-                            TB_development_monitor.AppendText(GetTime() + "\tR => " + read + error + "\n");
+                            TB_development_monitor.AppendText(GetTime() + "\tRX => " + read + error + "\n");
                             TB_development_monitor.ScrollToEnd();
                         }
                         else if (RB_update_mode.IsChecked == true)
                         {
-                            TB_development_monitor.Text = GetTime() + "\tR => " + read + error + "\n";
+                            TB_development_monitor.Text = GetTime() + "\tRX => " + read + error + "\n";
                         }
-                        TB_emc_monitor.AppendText(GetTime() + "\tR => " + read + error + "\n");
+                        TB_emc_monitor.AppendText(GetTime() + "\tRX => " + read + error + "\n");
                         TB_emc_monitor.ScrollToEnd();
-                        TB_Diagnostic_monitor.AppendText(GetTime() + "\tR => " + read + error + "\n");
+                        TB_Diagnostic_monitor.AppendText(GetTime() + "\tRX => " + read + error + "\n");
                         TB_Diagnostic_monitor.ScrollToEnd();
 
-                        ShowLEDFail();
+                        if(buffer[1] != 125)
+                        {
+                            ShowLEDFail();
+                        }
+                        
                         ShowLEDVF();
 
                         LB_read_count.Content = "RX Count => " + readCount.ToString();
@@ -1572,12 +1581,13 @@ namespace BCIM_Tool
                 {
                     serialPort.Write(output, 0, output.Length);
                     sendConut += 1;
+                    watdogStart = true;
                     LB_send_count.Content = "TX Count => " + sendConut.ToString();
-                    TB_development_monitor.AppendText(GetTime() + "\tS => " + send + "\n");
+                    TB_development_monitor.AppendText(GetTime() + "\tTX => " + send + "\n");
                     TB_development_monitor.ScrollToEnd();
-                    TB_emc_monitor.AppendText(GetTime() + "\tS => " + send + "\n");
+                    TB_emc_monitor.AppendText(GetTime() + "\tTX => " + send + "\n");
                     TB_emc_monitor.ScrollToEnd();
-                    TB_Diagnostic_monitor.AppendText(GetTime() + "\tS => " + send + "\n");
+                    TB_Diagnostic_monitor.AppendText(GetTime() + "\tTX => " + send + "\n");
                     TB_Diagnostic_monitor.ScrollToEnd();
                 }
             }
@@ -1595,12 +1605,13 @@ namespace BCIM_Tool
                 {
                     serialPort.Write(output, 0, output.Length);
                     sendConut += 1;
+                    watdogStart = true;
                     LB_send_count.Content = "TX Count => " + sendConut.ToString();
-                    TB_development_monitor.AppendText(GetTime() + "\tS => " + send + "\n");
+                    TB_development_monitor.AppendText(GetTime() + "\tTX => " + send + "\n");
                     TB_development_monitor.ScrollToEnd();
-                    TB_emc_monitor.AppendText(GetTime() + "\tS => " + send + "\n");
+                    TB_emc_monitor.AppendText(GetTime() + "\tTX => " + send + "\n");
                     TB_emc_monitor.ScrollToEnd();
-                    TB_Diagnostic_monitor.AppendText(GetTime() + "\tS => " + send + "\n");
+                    TB_Diagnostic_monitor.AppendText(GetTime() + "\tTX => " + send + "\n");
                     TB_Diagnostic_monitor.ScrollToEnd();
                 }
             }
