@@ -33,7 +33,7 @@ namespace BCIM_Tool
         bool startStatus = false;/*傳送命令是否啟動狀態狀態*/
         bool readDataStatus = true;/*讀取資料是否啟動狀態狀態*/
         int blinkFlag = 0, blinkRate = 100;
-
+        
         int underVoltage = 0, overTemperature = 0, parityError = 0, checkSumError = 0, dataError = 0, responseError = 0;
 
         int rr = 0, gg = 0, br = 0, bg = 0, bb = 0;/*LED VF Parameter*/
