@@ -108,13 +108,17 @@ namespace BCIM_Tool
             CB_diagnostic_command.SelectedIndex = 3;
 
             /*Use at Tab diagnostic*/
-            CB_diagnostic_commands.Items.Add("55 3C 62 06 C0 FF FF FF FF FF");
-            CB_diagnostic_commands.Items.Add("55 3C 62 06 C7 FF FF FF FF FF");
-            CB_diagnostic_commands.Items.Add("55 3C 62 06 C8 FF FF FF FF FF");
-            CB_diagnostic_commands.Items.Add("55 B4 55 D0 00 FF FF FF FF FF");
-            CB_diagnostic_commands.Items.Add("55 B4 55 D8 00 FF FF FF FF FF");
-            CB_diagnostic_commands.Items.Add("55 B4 55 C8 00 FF FF FF FF FF");
-            CB_diagnostic_commands.SelectedIndex = 2;
+            //CB_diagnostic_commands.Items.Add("55 3C 62 06 C0 FF FF FF FF FF");
+            //CB_diagnostic_commands.Items.Add("55 3C 62 06 C7 FF FF FF FF FF");
+            //CB_diagnostic_commands.Items.Add("55 3C 62 06 C8 FF FF FF FF FF");
+            //CB_diagnostic_commands.Items.Add("55 B4 55 D0 00 FF FF FF FF FF");
+            //CB_diagnostic_commands.Items.Add("55 B4 55 D8 00 FF FF FF FF FF");
+            //CB_diagnostic_commands.Items.Add("55 B4 55 C8 00 FF FF FF FF FF");
+            //CB_diagnostic_commands.SelectedIndex = 2;
+            TB_Diagnostic_send_command.Visibility = Visibility.Hidden;
+            LB_Diagnostic_send_checksum.Visibility = Visibility.Hidden;
+            BT_Diagnostic_send_command.Visibility = Visibility.Hidden;
+            CB_diagnostic_commands.Visibility = Visibility.Hidden;
 
             CB_led5_blink.Visibility = Visibility.Hidden;
 
@@ -404,9 +408,6 @@ namespace BCIM_Tool
                             serialPort.Write(output, 0, output.Length);
                             sendConut += 1;
 
-                            
-                            
-
                             Dispatcher.Invoke(new Action(() =>
                             {
                                 LB_send_count.Content = "TX Count => " + sendConut.ToString();
@@ -416,11 +417,7 @@ namespace BCIM_Tool
                                 TB_emc_monitor.ScrollToEnd();
                                 TB_Diagnostic_monitor.AppendText(GetTime() + "\tTX => " + send + "\n");
                                 TB_Diagnostic_monitor.ScrollToEnd();
-
-                                if(count == 3)
-                                {
-                                    
-                                }
+                                WriteToFile(DateTime.Now + " Send => " + send + "\n");
                                 
                             }));
 
@@ -657,7 +654,20 @@ namespace BCIM_Tool
                         //Detect PID = 7D
                         if (buffer[1] == 125)
                         {
-                            Diagnostic();
+                            error = "";
+                            if (buffer[2] == 0)
+                            {
+                                error = "=>Response Error";
+                                LB_board_status.Content = "Get Data Fail";
+                                LB_board_status.Background = Brushes.Red;
+                            }
+                            else
+                            {
+                                LB_board_status.Content = "Get Data Success";
+                                LB_board_status.Background = Brushes.Green;
+                                Diagnostic();                               
+                            }
+                            
                         }
 
                         if (buffer[1] != 125)
@@ -688,7 +698,7 @@ namespace BCIM_Tool
 
                         LB_read_count.Content = "RX Count => " + readCount.ToString();
                         /*檔案寫入儲存*/
-                        WriteToFile(DateTime.Now + " Read => " + read + "\n");
+                        WriteToFile(DateTime.Now + " Read => " + read + error + "\n");
                     }
                 }
             }));
@@ -850,8 +860,9 @@ namespace BCIM_Tool
 
             if (error == "")
             {
+                
                 readCount += 1;
-            }
+            }          
         }
 
         /*顯示LED錯誤*/
@@ -1624,8 +1635,11 @@ namespace BCIM_Tool
         private void BT_get_data_Click(object sender, RoutedEventArgs e)
         {
             try
-            {             
-                diagnosticStatus = true;
+            {
+                LB_support_sid.Content = "";
+                LB_sw_version.Content = "";
+                LB_p_n.Content = "";
+                diagnosticStatus = true;              
             }
             catch (Exception)
             {
