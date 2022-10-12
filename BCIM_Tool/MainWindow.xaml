@@ -6,7 +6,7 @@
         xmlns:xctk1="http://schemas.xceed.com/wpf/xaml/toolkit"
         xmlns:local="clr-namespace:BCIM_Tool" 
         mc:Ignorable="d"
-        Title="PC Tool V1.10" Height="864" Width="1536" WindowStartupLocation="CenterScreen" Closing="Window_Closing" FontSize="40" ResizeMode="CanResizeWithGrip" WindowState="Maximized">
+        Title="PC Tool V1.10" Height="814" Width="1536" WindowStartupLocation="CenterScreen" Closing="Window_Closing" FontSize="40" ResizeMode="CanResizeWithGrip" WindowState="Maximized">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition/>
@@ -67,7 +67,15 @@
                                 <ComboBox Name="CB_blink_mode" Margin="0,5,0,0" Height="60" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontSize="30" SelectionChanged="CB_blink_mode_SelectionChanged"/>
                             </StackPanel>
                         </GroupBox>
-
+                        
+                        <StackPanel Orientation="Horizontal" Height="91" Margin="0,0,0.4,0">
+                            <CheckBox x:Name="CB_led1_blink" Content="LED1&#xD;&#xA;Blink" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,0,0,0" FontSize="25" Width="80" Height="80"/>
+                            <CheckBox x:Name="CB_led2_blink" Content="LED2&#xD;&#xA;Blink" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="20,5.6,0,5.6" FontSize="25" Width="80" Height="80"/>
+                            <CheckBox x:Name="CB_led3_blink" Content="LED3&#xD;&#xA;Blink" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="20,5.6,0,5.6" FontSize="25" Width="80" Height="80"/>
+                            <CheckBox x:Name="CB_led4_blink" Content="LED4&#xD;&#xA;Blink" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="20,5.6,0,5.6" FontSize="25" Width="80" Height="80"/>
+                            <CheckBox x:Name="CB_led5_blink" Content="LED5&#xD;&#xA;Blink" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="20,5.6,0,5.6" FontSize="25" Width="80" Height="80"/>
+                        </StackPanel>
+                        
                         <GroupBox Header="Light Preview" FontSize="30">
                             <StackPanel Orientation="Horizontal" Height="116" Margin="0,0,0.4,0">
                                 <Rectangle x:Name="LED_1" Stroke="Black"  Fill="Black" Width="80" HorizontalAlignment="Center" Margin="5,0,0,0" MouseDown="LED_1_MouseDown" Height="80"/>
@@ -77,14 +85,6 @@
                                 <Rectangle x:Name="LED_5" Stroke="White"  Margin="20,0,0,0" Width="80" HorizontalAlignment="Center" IsEnabled="False" Fill="White" MouseDown="LED_5_MouseDown" Height="80"/>
                             </StackPanel>
                         </GroupBox>
-
-                        <StackPanel Orientation="Horizontal" Height="91" Margin="0,0,0.4,0">
-                            <CheckBox x:Name="CB_led1_blink" Content="LED1&#xD;&#xA;Blink" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,0,0,0" FontSize="25" Width="80" Height="80"/>
-                            <CheckBox x:Name="CB_led2_blink" Content="LED2&#xD;&#xA;Blink" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="20,5.6,0,5.6" FontSize="25" Width="80" Height="80"/>
-                            <CheckBox x:Name="CB_led3_blink" Content="LED3&#xD;&#xA;Blink" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="20,5.6,0,5.6" FontSize="25" Width="80" Height="80"/>
-                            <CheckBox x:Name="CB_led4_blink" Content="LED4&#xD;&#xA;Blink" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="20,5.6,0,5.6" FontSize="25" Width="80" Height="80"/>
-                            <CheckBox x:Name="CB_led5_blink" Content="LED5&#xD;&#xA;Blink" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="20,5.6,0,5.6" FontSize="25" Width="80" Height="80"/>
-                        </StackPanel>
 
                     </StackPanel>
 
@@ -111,32 +111,32 @@
                             </StackPanel>
                         </StackPanel>
 
-                        <GroupBox Header="Led Fail" FontSize="30" Margin="0,10,0,0" Padding="0" Height="479" VerticalContentAlignment="Center">
-                            <StackPanel Orientation="Vertical" Margin="0,10,0,-15">
+                        <GroupBox Header="Led Fail" FontSize="30" Margin="0,10,0,0" Padding="0" Height="447" VerticalContentAlignment="Center">
+                            <StackPanel Orientation="Vertical" Margin="0,10,0,33">
                                 <StackPanel Orientation="Horizontal">
-                                    <Label Content="LED1" Margin="5,0,0,0"/>
-                                    <Label Content="LED2" Margin="12,0,0,0"/>
-                                    <Label Content="LED3" Margin="12,0,0,0"/>
-                                    <Label Content="LED4" Margin="12,0,0,0"/>
-                                    <Label x:Name="LB_led5" Content="LED5" Margin="12,0,0,0"/>
+                                    <Label Content="LED1" Margin="5,0,0,0" FontSize="25"/>
+                                    <Label Content="LED2" Margin="12,0,0,0" FontSize="25"/>
+                                    <Label Content="LED3" Margin="12,0,0,0" FontSize="25"/>
+                                    <Label Content="LED4" Margin="12,0,0,0" FontSize="25"/>
+                                    <Label x:Name="LB_led5_fail" Content="LED5" Margin="12,0,0,0" FontSize="25"/>
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
-                                    <Rectangle x:Name="LedFail_1" Stroke="Black"  Fill="Black" Height="80" Width="80" VerticalAlignment="Bottom"/>
-                                    <Rectangle x:Name="LedFail_2" Stroke="Black"  Fill="Black" Height="80" Width="80" Margin="10,0,0,0" VerticalAlignment="Bottom"/>
-                                    <Rectangle x:Name="LedFail_3" Stroke="Black"  Fill="Black" Height="80" Width="80" Margin="10,0,0,0" VerticalAlignment="Bottom"/>
-                                    <Rectangle x:Name="LedFail_4" Stroke="Black"  Fill="Black" Height="80" Width="80" Margin="10,0,0,0" VerticalAlignment="Bottom"/>
-                                    <Rectangle x:Name="LedFail_5" Stroke="White"  Fill="White" Height="80" Width="80" Margin="10,0,0,0" VerticalAlignment="Bottom"/>
+                                    <Rectangle x:Name="LedFail_1" Stroke="Black"  Fill="Black" Height="60" Width="60" VerticalAlignment="Bottom" Margin="5,0,0,0"/>
+                                    <Rectangle x:Name="LedFail_2" Stroke="Black"  Fill="Black" Height="60" Width="60" Margin="18,0,0,0" VerticalAlignment="Bottom"/>
+                                    <Rectangle x:Name="LedFail_3" Stroke="Black"  Fill="Black" Height="60" Width="60" Margin="19,0,0,0" VerticalAlignment="Bottom"/>
+                                    <Rectangle x:Name="LedFail_4" Stroke="Black"  Fill="Black" Height="60" Width="60" Margin="18,0,0,0" VerticalAlignment="Bottom"/>
+                                    <Rectangle x:Name="LedFail_5" Stroke="White"  Fill="White" Height="60" Width="60" Margin="18,0,0,0" VerticalAlignment="Bottom"/>
                                 </StackPanel>
-                                <CheckBox x:Name="CB_fail_led_off" Content="When Fail Turn Led Off" FontSize="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Right" Margin="0,20,10,0"/>
-                                <StackPanel Orientation="Horizontal" Margin="0">
+                                <CheckBox x:Name="CB_fail_led_off" Content="When Fail Turn Led Off" FontSize="20" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" HorizontalAlignment="Right" Margin="0,10,10,0"/>
+                                <StackPanel Orientation="Horizontal" Margin="0" Height="250">
                                     <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
                                         <Label Content="LED1" FontSize="20" Margin="0,37,0,0"/>
                                         <Label Content="LED2" FontSize="20"/>
                                         <Label Content="LED3" FontSize="20"/>
                                         <Label Content="LED4" FontSize="20"/>
-                                        <Label Content="LED5" FontSize="20"/>
+                                        <Label x:Name="LB_led5" Content="LED5" FontSize="20"/>
                                     </StackPanel>
-                                    <StackPanel Orientation="Vertical" Margin="0,0,0,10">
+                                    <StackPanel Orientation="Vertical" Margin="0,0,0,-0.4">
                                         <Label Content="Fail Code" FontSize="20"/>
                                         <Label x:Name="LB_led1_fail_code" Content="0" FontSize="20" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
                                         <Label x:Name="LB_led2_fail_code" Content="0" FontSize="20" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
@@ -348,7 +348,7 @@
                             <Label Content="Diagnostics for C7 C8 : ECU Information ( From CS.11718)" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="0,20,0,0" FontSize="25" FontWeight="Bold"/>
 
                         </StackPanel>
-                        
+
                         <StackPanel Orientation="Horizontal">
                             <Label Content="P/N :" Margin="30,10,0,0"/>
                             <Label x:Name="LB_p_n" Content="" Margin="0,10,0,0"/>

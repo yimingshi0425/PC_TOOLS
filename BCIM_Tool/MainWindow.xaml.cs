@@ -1,4 +1,7 @@
-﻿using System;
+﻿//20221012 v1.3
+//Add 2020JL BCIM function
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -39,7 +42,7 @@ namespace BCIM_Tool
         int rr = 0, gg = 0, br = 0, bg = 0, bb = 0;/*LED VF Parameter*/
         int rr_min = 1000, gg_min = 1000, br_min = 1000, bg_min = 1000, bb_min = 1000;
         int rr_max = 0, gg_max = 0, br_max = 0, bg_max = 0, bb_max = 0;
-        int VF = 0, ledFail_1 = 0, ledFail_2 = 0, ledFail_3 = 0, ledFail_4 = 0;
+        int VF = 0, ledFail_1 = 0, ledFail_2 = 0, ledFail_3 = 0, ledFail_4 = 0, ledFail_5 = 0;
         string send = "", read = "", error = "";
         int sendConut = 0, readCount = 0, timeoutCount = 0;
         bool ledFailStatus = false;
@@ -55,6 +58,7 @@ namespace BCIM_Tool
         string supportSID_2 = "";
         string p_n_1 = "", p_n_2 = "";
         string sw_version = "";
+        string model = "";
 
 
         public MainWindow()
@@ -71,12 +75,7 @@ namespace BCIM_Tool
             LED_3.Stroke = Brushes.Green;
             LED_4.Fill = Brushes.Green;
             LED_4.Stroke = Brushes.Green;
-            LED_5.Fill = Brushes.White;
-            LED_5.Stroke = Brushes.White;
-
-            LB_led5.Visibility = Visibility.Hidden;
-
-            LedFail_5.Visibility = Visibility.Hidden;
+            
 
             CB_error_test_mode.Items.Add("Normal");
             CB_error_test_mode.Items.Add("Parity Error");
@@ -88,11 +87,6 @@ namespace BCIM_Tool
             CB_color.Items.Add("Blue");
             CB_color.Items.Add("Red");
             CB_color.SelectedIndex = 0;
-
-            CB_blink_mode.Items.Add("No Blink");
-            CB_blink_mode.Items.Add("Blink Rate 1");
-            CB_blink_mode.Items.Add("Blink Rate 3");
-            CB_blink_mode.SelectedIndex = 0;
 
             CB_model.Items.Add("2020JL BCIM");
             CB_model.Items.Add("2024JL BCIM");
@@ -163,7 +157,14 @@ namespace BCIM_Tool
                     TxBuf_34H_2024JL[0] = 0x55;//同步碼
                     TxBuf_34H_2024JL[1] = 0xb4;//PID
                     TxBuf_34H_2024JL[2] = 0x00;//SET IND1~4
-                    TxBuf_34H_2024JL[3] = 0xC0;//SET IND5，color
+                    if(model == "2020JL BCIM")
+                    {
+                        TxBuf_34H_2024JL[3] = 0x00;//SET IND5
+                    }
+                    if(model == "2024JL BCIM")
+                    {
+                        TxBuf_34H_2024JL[3] = 0xC0;//SET IND5，color                        
+                    }
                     TxBuf_34H_2024JL[4] = 0x00;//SET flash rate
                     TxBuf_34H_2024JL[5] = 0xFF;
                     TxBuf_34H_2024JL[6] = 0xFF;
@@ -236,6 +237,22 @@ namespace BCIM_Tool
                             }
                         }
 
+                        if (CB_led5_blink.IsChecked == true)
+                        {
+                            TxBuf_34H_2024JL[3] = 0x02;
+                        }
+                        else
+                        {
+                            if (ledState_5)
+                            {
+                                TxBuf_34H_2024JL[3] = 0x01;
+                            }
+                            else
+                            {
+                                TxBuf_34H_2024JL[3] = 0x00;
+                            }
+                        }
+
                         if (ledFailStatus)
                         {
                             if (CB_fail_led_off.IsChecked == true)
@@ -244,31 +261,40 @@ namespace BCIM_Tool
                             }
                         }
 
-                        switch (CB_color.SelectedIndex)
-                        {
-                            case 0://Green
-                                TxBuf_34H_2024JL[3] = TxBuf_34H_2024JL[3] | (0x02 << 3);
-                                break;
-                            case 1://Blue
-                                TxBuf_34H_2024JL[3] = TxBuf_34H_2024JL[3] | (0x03 << 3);
-                                break;
-                            case 2://Red
-                                TxBuf_34H_2024JL[3] = TxBuf_34H_2024JL[3] | (0x01 << 3);
-                                break;
+                        if(model == "2020JL BCIM")
+                        {                                  
+                            TxBuf_34H_2024JL[4] = CB_blink_mode.SelectedIndex;
                         }
+                        
+                        if (model == "2024JL BCIM")
+                        {
+                            switch (CB_color.SelectedIndex)
+                            {
+                                case 0://Green
+                                    TxBuf_34H_2024JL[3] = TxBuf_34H_2024JL[3] | (0x02 << 3);
+                                    break;
+                                case 1://Blue
+                                    TxBuf_34H_2024JL[3] = TxBuf_34H_2024JL[3] | (0x03 << 3);
+                                    break;
+                                case 2://Red
+                                    TxBuf_34H_2024JL[3] = TxBuf_34H_2024JL[3] | (0x01 << 3);
+                                    break;
+                            }
 
-                        switch (CB_blink_mode.SelectedIndex)
-                        {
-                            case 0:
-                                TxBuf_34H_2024JL[4] = 0;
-                                break;
-                            case 1:
-                                TxBuf_34H_2024JL[4] = 1;
-                                break;
-                            case 2:
-                                TxBuf_34H_2024JL[4] = 3;
-                                break;
+                            switch (CB_blink_mode.SelectedIndex)
+                            {
+                                case 0:
+                                    TxBuf_34H_2024JL[4] = 0;
+                                    break;
+                                case 1:
+                                    TxBuf_34H_2024JL[4] = 1;
+                                    break;
+                                case 2:
+                                    TxBuf_34H_2024JL[4] = 3;
+                                    break;
+                            }
                         }
+                        
 
                         /*這個switch函數必須放最後因為裡面有checksum計算函數*/
                         switch (CB_error_test_mode.SelectedIndex)
@@ -405,6 +431,7 @@ namespace BCIM_Tool
 
                             send += " ";
                             send += output[10].ToString("X2");
+                            /*0x3D EMC Send*/
                             serialPort.Write(output, 0, output.Length);
                             sendConut += 1;
 
@@ -476,145 +503,201 @@ namespace BCIM_Tool
             {
                 Dispatcher.Invoke(new Action(() =>
                 {
-                    switch (CB_color.SelectedIndex)
+                    if(model == "2020JL BCIM")
                     {
-                        case 0:
-                            if (ledState_1)
-                            {
-                                LED_1.Fill = Brushes.Green;
-                                LED_1.Stroke = Brushes.Green;
-                            }
-                            else
-                            {
-                                LED_1.Fill = Brushes.Black;
-                                LED_1.Stroke = Brushes.Black;
-                            }
-
-                            if (ledState_2)
-                            {
-                                LED_2.Fill = Brushes.Green;
-                                LED_2.Stroke = Brushes.Green;
-                            }
-                            else
-                            {
-                                LED_2.Fill = Brushes.Black;
-                                LED_2.Stroke = Brushes.Black;
-                            }
-
-                            if (ledState_3)
-                            {
-                                LED_3.Fill = Brushes.Green;
-                                LED_3.Stroke = Brushes.Green;
-                            }
-                            else
-                            {
-                                LED_3.Fill = Brushes.Black;
-                                LED_3.Stroke = Brushes.Black;
-                            }
-
-                            if (ledState_4)
-                            {
-                                LED_4.Fill = Brushes.Green;
-                                LED_4.Stroke = Brushes.Green;
-                            }
-                            else
-                            {
-                                LED_4.Fill = Brushes.Black;
-                                LED_4.Stroke = Brushes.Black;
-                            }
-                            break;
-                        case 1:
-                            if (ledState_1)
-                            {
-                                LED_1.Fill = Brushes.Blue;
-                                LED_1.Stroke = Brushes.Blue;
-                            }
-                            else
-                            {
-                                LED_1.Fill = Brushes.Black;
-                                LED_1.Stroke = Brushes.Black;
-                            }
-
-                            if (ledState_2)
-                            {
-                                LED_2.Fill = Brushes.Blue;
-                                LED_2.Stroke = Brushes.Blue;
-                            }
-                            else
-                            {
-                                LED_2.Fill = Brushes.Black;
-                                LED_2.Stroke = Brushes.Black;
-                            }
-
-                            if (ledState_3)
-                            {
-                                LED_3.Fill = Brushes.Blue;
-                                LED_3.Stroke = Brushes.Blue;
-                            }
-                            else
-                            {
-                                LED_3.Fill = Brushes.Black;
-                                LED_3.Stroke = Brushes.Black;
-                            }
-
-                            if (ledState_4)
-                            {
-                                LED_4.Fill = Brushes.Blue;
-                                LED_4.Stroke = Brushes.Blue;
-                            }
-                            else
-                            {
-                                LED_4.Fill = Brushes.Black;
-                                LED_4.Stroke = Brushes.Black;
-                            }
-                            break;
-                        case 2:
-                            if (ledState_1)
-                            {
-                                LED_1.Fill = Brushes.Red;
-                                LED_1.Stroke = Brushes.Red;
-                            }
-                            else
-                            {
-                                LED_1.Fill = Brushes.Black;
-                                LED_1.Stroke = Brushes.Black;
-                            }
-
-                            if (ledState_2)
-                            {
-                                LED_2.Fill = Brushes.Red;
-                                LED_2.Stroke = Brushes.Red;
-                            }
-                            else
-                            {
-                                LED_2.Fill = Brushes.Black;
-                                LED_2.Stroke = Brushes.Black;
-                            }
-
-                            if (ledState_3)
-                            {
-                                LED_3.Fill = Brushes.Red;
-                                LED_3.Stroke = Brushes.Red;
-                            }
-                            else
-                            {
-                                LED_3.Fill = Brushes.Black;
-                                LED_3.Stroke = Brushes.Black;
-                            }
-
-                            if (ledState_4)
-                            {
-                                LED_4.Fill = Brushes.Red;
-                                LED_4.Stroke = Brushes.Red;
-                            }
-                            else
-                            {
-                                LED_4.Fill = Brushes.Black;
-                                LED_4.Stroke = Brushes.Black;
-                            }
-                            break;
+                        if (ledState_1)
+                        {
+                            LED_1.Fill = Brushes.Aqua;
+                            LED_1.Stroke = Brushes.Aqua;
+                        }
+                        else
+                        {
+                            LED_1.Fill = Brushes.Black;
+                            LED_1.Stroke = Brushes.Black;
+                        }
+                        if (ledState_2)
+                        {
+                            LED_2.Fill = Brushes.Aqua;
+                            LED_2.Stroke = Brushes.Aqua;
+                        }
+                        else
+                        {
+                            LED_2.Fill = Brushes.Black;
+                            LED_2.Stroke = Brushes.Black;
+                        }
+                        if (ledState_3)
+                        {
+                            LED_3.Fill = Brushes.Aqua;
+                            LED_3.Stroke = Brushes.Aqua;
+                        }
+                        else
+                        {
+                            LED_3.Fill = Brushes.Black;
+                            LED_3.Stroke = Brushes.Black;
+                        }
+                        if (ledState_4)
+                        {
+                            LED_4.Fill = Brushes.Aqua;
+                            LED_4.Stroke = Brushes.Aqua;
+                        }
+                        else
+                        {
+                            LED_4.Fill = Brushes.Black;
+                            LED_4.Stroke = Brushes.Black;
+                        }
+                        if (ledState_5)
+                        {
+                            LED_5.Fill = Brushes.Aqua;
+                            LED_5.Stroke = Brushes.Aqua;
+                        }
+                        else
+                        {
+                            LED_5.Fill = Brushes.Black;
+                            LED_5.Stroke = Brushes.Black;
+                        }
                     }
+                    if(model == "2024JL BCIM")
+                    {
+                        switch (CB_color.SelectedIndex)
+                        {
+                            case 0:
+                                if (ledState_1)
+                                {
+                                    LED_1.Fill = Brushes.Green;
+                                    LED_1.Stroke = Brushes.Green;
+                                }
+                                else
+                                {
+                                    LED_1.Fill = Brushes.Black;
+                                    LED_1.Stroke = Brushes.Black;
+                                }
 
+                                if (ledState_2)
+                                {
+                                    LED_2.Fill = Brushes.Green;
+                                    LED_2.Stroke = Brushes.Green;
+                                }
+                                else
+                                {
+                                    LED_2.Fill = Brushes.Black;
+                                    LED_2.Stroke = Brushes.Black;
+                                }
+
+                                if (ledState_3)
+                                {
+                                    LED_3.Fill = Brushes.Green;
+                                    LED_3.Stroke = Brushes.Green;
+                                }
+                                else
+                                {
+                                    LED_3.Fill = Brushes.Black;
+                                    LED_3.Stroke = Brushes.Black;
+                                }
+
+                                if (ledState_4)
+                                {
+                                    LED_4.Fill = Brushes.Green;
+                                    LED_4.Stroke = Brushes.Green;
+                                }
+                                else
+                                {
+                                    LED_4.Fill = Brushes.Black;
+                                    LED_4.Stroke = Brushes.Black;
+                                }
+                                break;
+                            case 1:
+                                if (ledState_1)
+                                {
+                                    LED_1.Fill = Brushes.Blue;
+                                    LED_1.Stroke = Brushes.Blue;
+                                }
+                                else
+                                {
+                                    LED_1.Fill = Brushes.Black;
+                                    LED_1.Stroke = Brushes.Black;
+                                }
+
+                                if (ledState_2)
+                                {
+                                    LED_2.Fill = Brushes.Blue;
+                                    LED_2.Stroke = Brushes.Blue;
+                                }
+                                else
+                                {
+                                    LED_2.Fill = Brushes.Black;
+                                    LED_2.Stroke = Brushes.Black;
+                                }
+
+                                if (ledState_3)
+                                {
+                                    LED_3.Fill = Brushes.Blue;
+                                    LED_3.Stroke = Brushes.Blue;
+                                }
+                                else
+                                {
+                                    LED_3.Fill = Brushes.Black;
+                                    LED_3.Stroke = Brushes.Black;
+                                }
+
+                                if (ledState_4)
+                                {
+                                    LED_4.Fill = Brushes.Blue;
+                                    LED_4.Stroke = Brushes.Blue;
+                                }
+                                else
+                                {
+                                    LED_4.Fill = Brushes.Black;
+                                    LED_4.Stroke = Brushes.Black;
+                                }
+                                break;
+                            case 2:
+                                if (ledState_1)
+                                {
+                                    LED_1.Fill = Brushes.Red;
+                                    LED_1.Stroke = Brushes.Red;
+                                }
+                                else
+                                {
+                                    LED_1.Fill = Brushes.Black;
+                                    LED_1.Stroke = Brushes.Black;
+                                }
+
+                                if (ledState_2)
+                                {
+                                    LED_2.Fill = Brushes.Red;
+                                    LED_2.Stroke = Brushes.Red;
+                                }
+                                else
+                                {
+                                    LED_2.Fill = Brushes.Black;
+                                    LED_2.Stroke = Brushes.Black;
+                                }
+
+                                if (ledState_3)
+                                {
+                                    LED_3.Fill = Brushes.Red;
+                                    LED_3.Stroke = Brushes.Red;
+                                }
+                                else
+                                {
+                                    LED_3.Fill = Brushes.Black;
+                                    LED_3.Stroke = Brushes.Black;
+                                }
+
+                                if (ledState_4)
+                                {
+                                    LED_4.Fill = Brushes.Red;
+                                    LED_4.Stroke = Brushes.Red;
+                                }
+                                else
+                                {
+                                    LED_4.Fill = Brushes.Black;
+                                    LED_4.Stroke = Brushes.Black;
+                                }
+                                break;
+                        }
+                    }
+                    
                     LB_timeout_count.Content = timeoutCount.ToString();
                     LB_send_checksum.Content = output[10].ToString("X2");
                     LB_Diagnostic_send_checksum.Content = output[10].ToString("X2");
@@ -682,7 +765,7 @@ namespace BCIM_Tool
                         }
                         else if (RB_update_mode.IsChecked == true)
                         {
-                            TB_development_monitor.Text = GetTime() + "\tRX => " + read + error + "\n";
+                            TB_development_monitor.AppendText(GetTime() + "\tRX => " + read + error + "\n");
                         }
                         TB_emc_monitor.AppendText(GetTime() + "\tRX => " + read + error + "\n");
                         TB_emc_monitor.ScrollToEnd();
@@ -872,7 +955,7 @@ namespace BCIM_Tool
             /*LED OPEN   紅色 1*/
             /*LED SHORT  綠色 2*/
 
-            bool f1 = false, f2 = false, f3 = false, f4 = false;
+            bool f1 = false, f2 = false, f3 = false, f4 = false, f5 = false;
 
             /*Led 1*/
             ledFail_1 = buffer[4] & 0x03;
@@ -974,15 +1057,56 @@ namespace BCIM_Tool
                     break;
             }
 
-            if (f1 == true | f2 == true | f3 == true | f4 == true)
+            if(model == "2020JL BCIM")
             {
-                ledFailStatus = true;
+                ledFail_5 = buffer[5] & 0x03;
+                LB_led5_fail_code.Content = ledFail_5.ToString();
+                switch (ledFail_4)
+                {
+                    case 0:
+                        LedFail_5.Fill = Brushes.Black;
+                        LedFail_5.Stroke = Brushes.Black;
+                        LB_led5_fail_description.Content = "Normal";
+                        f5 = false;
+                        break;
+                    case 1:
+                        LedFail_5.Fill = Brushes.Red;
+                        LedFail_5.Stroke = Brushes.Red;
+                        LB_led5_fail_description.Content = "Open";
+                        f5 = true;
+                        break;
+                    case 2:
+                        LedFail_5.Fill = Brushes.Green;
+                        LedFail_5.Stroke = Brushes.Green;
+                        LB_led5_fail_description.Content = "Short";
+                        f5 = true;
+                        break;
+                }
+                if (f1 == true | f2 == true | f3 == true | f4 == true | f5 == true)
+                {
+                    ledFailStatus = true;
+                }
+                else
+                {
+                    ledFailStatus = false;
+                }
+                buffer[4] = 0x00;
+                buffer[5] = 0x00;
             }
-            else
+            if (model == "2024JL BCIM")
             {
-                ledFailStatus = false;
+                if (f1 == true | f2 == true | f3 == true | f4 == true)
+                {
+                    ledFailStatus = true;
+                }
+                else
+                {
+                    ledFailStatus = false;
+                }
+                buffer[4] = 0x00;
             }
-            buffer[4] = 0x00;
+            
+            
         }
 
         /*顯示LED VF*/
@@ -1338,21 +1462,66 @@ namespace BCIM_Tool
         {
             switch (CB_model.SelectedIndex)
             {
-                case 0:
-                    LED_5.Fill = Brushes.Green;
-                    LED_5.Stroke = Brushes.Green;
+                case 0://2020JL BCIM
+                    LED_1.Fill = Brushes.Aqua;
+                    LED_1.Stroke = Brushes.Aqua;
+                    LED_2.Fill = Brushes.Aqua;
+                    LED_2.Stroke = Brushes.Aqua;
+                    LED_3.Fill = Brushes.Aqua;
+                    LED_3.Stroke = Brushes.Aqua;
+                    LED_4.Fill = Brushes.Aqua;
+                    LED_4.Stroke = Brushes.Aqua;
+                    LED_5.Fill = Brushes.Aqua;
+                    LED_5.Stroke = Brushes.Aqua;
+                    LED_5.IsEnabled = true;
                     LedFail_5.Fill = Brushes.Black;
                     LedFail_5.Stroke = Brushes.Black;
-                    CB_led5_blink.Visibility = Visibility.Visible;
                     LedFail_5.Visibility = Visibility.Visible;
+                    LB_led5_fail.Visibility = Visibility.Visible;
+                    LB_led5.Visibility = Visibility.Visible;
+                    LB_led5_fail_code.Visibility = Visibility.Visible;
+                    LB_led5_fail_count.Visibility = Visibility.Visible;
+                    LB_led5_fail_description.Visibility = Visibility.Visible;
+                    CB_led5_blink.Visibility = Visibility.Visible;
+
+                    CB_color.IsEnabled = false;
+                    CB_color.Text = "";
+
+                    CB_blink_mode.Items.Clear();
+                    CB_blink_mode.Items.Add("No Blink");
+                    CB_blink_mode.Items.Add("Blink Rate 1");
+                    CB_blink_mode.Items.Add("Blink Rate 2");
+                    CB_blink_mode.Items.Add("Blink Rate 3");
+                    CB_blink_mode.Items.Add("Blink Rate 4");
+                    CB_blink_mode.Items.Add("Blink Rate 5");
+                    CB_blink_mode.Items.Add("Blink Rate 6");
+                    CB_blink_mode.SelectedIndex = 0;
+
+                    model = "2020JL BCIM";
                     break;
-                case 1:
+                case 1://2024JL BCIM
                     LED_5.Fill = Brushes.White;
                     LED_5.Stroke = Brushes.White;
                     LedFail_5.Fill = Brushes.White;
-                    LedFail_5.Stroke = Brushes.White;
-                    CB_led5_blink.Visibility = Visibility.Hidden;
+                    LedFail_5.Stroke = Brushes.White;                    
                     LedFail_5.Visibility = Visibility.Hidden;
+                    LB_led5_fail.Visibility = Visibility.Hidden;
+                    LB_led5.Visibility = Visibility.Hidden;
+                    LB_led5_fail_code.Visibility = Visibility.Hidden;
+                    LB_led5_fail_count.Visibility = Visibility.Hidden;
+                    LB_led5_fail_description.Visibility = Visibility.Hidden;
+                    CB_led5_blink.Visibility = Visibility.Hidden;
+
+                    CB_color.IsEnabled = true;
+                    CB_color.SelectedIndex = 0;
+
+                    CB_blink_mode.Items.Clear();
+                    CB_blink_mode.Items.Add("No Blink");
+                    CB_blink_mode.Items.Add("Blink Rate 1");
+                    CB_blink_mode.Items.Add("Blink Rate 3");
+                    CB_blink_mode.SelectedIndex = 0;
+
+                    model = "2024JL BCIM";
                     break;
             }
         }
@@ -1746,10 +1915,12 @@ namespace BCIM_Tool
                 if (!ledState_5)
                 {
                     ledState_5 = true;
+                    Console.WriteLine("On");
                 }
                 else
                 {
                     ledState_5 = false;
+                    Console.WriteLine("Off");
                 }
             }
             catch (Exception)
