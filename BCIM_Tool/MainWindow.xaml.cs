@@ -116,6 +116,11 @@ namespace BCIM_Tool
 
             CB_led5_blink.Visibility = Visibility.Hidden;
 
+            TB_Diagnostic_monitor.Visibility = Visibility.Hidden;
+            TB_Diagnostic_send_command.Visibility = Visibility.Hidden;
+            LB_Diagnostic_send_checksum.Visibility = Visibility.Hidden;
+            BT_Diagnostic_send_command.Visibility = Visibility.Hidden;
+            CB_diagnostic_commands.Visibility = Visibility.Hidden;
 
 
             string[] ports = SerialPort.GetPortNames();
@@ -237,19 +242,22 @@ namespace BCIM_Tool
                             }
                         }
 
-                        if (CB_led5_blink.IsChecked == true)
+                        if (model == "2020JL BCIM")
                         {
-                            TxBuf_34H_2024JL[3] = 0x02;
-                        }
-                        else
-                        {
-                            if (ledState_5)
+                            if (CB_led5_blink.IsChecked == true)
                             {
-                                TxBuf_34H_2024JL[3] = 0x01;
+                                TxBuf_34H_2024JL[3] = 0x02;
                             }
                             else
                             {
-                                TxBuf_34H_2024JL[3] = 0x00;
+                                if (ledState_5)
+                                {
+                                    TxBuf_34H_2024JL[3] = 0x01;
+                                }
+                                else
+                                {
+                                    TxBuf_34H_2024JL[3] = 0x00;
+                                }
                             }
                         }
 
