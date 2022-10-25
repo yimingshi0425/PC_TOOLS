@@ -1,5 +1,7 @@
-﻿//20221012 v1.3
+﻿/*20221012 v1.3*/
 //Add 2020JL BCIM function
+/*20221012 v1.31*/
+//Add led fail count function
 
 using System;
 using System.Collections.Generic;
@@ -43,6 +45,7 @@ namespace BCIM_Tool
         int rr_min = 1000, gg_min = 1000, br_min = 1000, bg_min = 1000, bb_min = 1000;
         int rr_max = 0, gg_max = 0, br_max = 0, bg_max = 0, bb_max = 0;
         int VF = 0, ledFail_1 = 0, ledFail_2 = 0, ledFail_3 = 0, ledFail_4 = 0, ledFail_5 = 0;
+        int ledFail_count_1 = 0, ledFail_count_2 = 0, ledFail_count_3 = 0, ledFail_count_4 = 0, ledFail_count_5 = 0;
         string send = "", read = "", error = "";
         int sendConut = 0, readCount = 0, timeoutCount = 0;
         bool ledFailStatus = false;
@@ -709,6 +712,11 @@ namespace BCIM_Tool
                     LB_timeout_count.Content = timeoutCount.ToString();
                     LB_send_checksum.Content = output[10].ToString("X2");
                     LB_Diagnostic_send_checksum.Content = output[10].ToString("X2");
+
+                    LB_led1_fail_count.Content = ledFail_count_1.ToString();
+                    LB_led2_fail_count.Content = ledFail_count_2.ToString();
+                    LB_led3_fail_count.Content = ledFail_count_3.ToString();
+                    LB_led4_fail_count.Content = ledFail_count_4.ToString();
                 }));
                 await Task.Delay(100);
             }
@@ -1069,7 +1077,7 @@ namespace BCIM_Tool
             {
                 ledFail_5 = buffer[5] & 0x03;
                 LB_led5_fail_code.Content = ledFail_5.ToString();
-                switch (ledFail_4)
+                switch (ledFail_5)
                 {
                     case 0:
                         LedFail_5.Fill = Brushes.Black;
@@ -1111,6 +1119,10 @@ namespace BCIM_Tool
                 {
                     ledFailStatus = false;
                 }
+                if (f1) ledFail_count_1++;
+                if (f2) ledFail_count_2++;
+                if (f3) ledFail_count_3++;
+                if (f4) ledFail_count_4++;
                 buffer[4] = 0x00;
             }
             
