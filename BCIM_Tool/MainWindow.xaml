@@ -26,7 +26,7 @@
 
                     <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Vertical">
 
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,30,0,0">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,30,0,0" Width="406.4" Height="80">
                             <Label Content="Port" Margin="10,16,0,0" Height="50" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontSize="30" Padding="5"/>
                             <ComboBox x:Name="CB_port" Width="265" Margin="30,15,0,5" Height="60" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" SelectionChanged="CB_port_SelectionChanged" DropDownOpened="CB_port_DropDownOpened" HorizontalAlignment="Center" FontSize="30"/>
                         </StackPanel>
