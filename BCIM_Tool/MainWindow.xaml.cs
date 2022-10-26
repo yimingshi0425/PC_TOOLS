@@ -2,6 +2,8 @@
 //Add 2020JL BCIM function
 /*20221012 v1.31*/
 //Add led fail count function
+/*20221012 v1.32*/
+//Add get emc firmware version function
 
 using System;
 using System.Collections.Generic;
@@ -61,6 +63,7 @@ namespace BCIM_Tool
         string supportSID_2 = "";
         string p_n_1 = "", p_n_2 = "";
         string sw_version = "";
+        string emc_version = "";
         string model = "";
 
 
@@ -99,6 +102,7 @@ namespace BCIM_Tool
             CB_diagnostic_command.Items.Add("55 3C 62 06 C0 FF FF FF FF FF");
             CB_diagnostic_command.Items.Add("55 3C 62 06 C7 FF FF FF FF FF");
             CB_diagnostic_command.Items.Add("55 3C 62 06 C8 FF FF FF FF FF");
+            CB_diagnostic_command.Items.Add("55 76 FF FF FF FF FF FF FF FF");
             CB_diagnostic_command.Items.Add("55 B4 55 D0 00 FF FF FF FF FF");
             CB_diagnostic_command.Items.Add("55 B4 55 D8 00 FF FF FF FF FF");
             CB_diagnostic_command.Items.Add("55 B4 55 C8 00 FF FF FF FF FF");
@@ -369,7 +373,7 @@ namespace BCIM_Tool
                         send += TxBuf_34H_2024JL[i].ToString("X2");
                         send += " ";
                     }
-                    Console.WriteLine("TX => " + send);
+                    //Console.WriteLine("TX => " + send);
 
                     Dispatcher.Invoke(new Action(() =>
                     {
@@ -421,6 +425,9 @@ namespace BCIM_Tool
                                 case 3:
                                     send = "55 3C 62 06 C8 FF FF FF FF FF";
                                     break;
+                                case 4://Get EMC Fireware Version
+                                    send = "55 76 FF FF FF FF FF FF FF FF";
+                                    break;
                             }
                             hexString = send.Split(' ');
                             int[] temp = new int[11];
@@ -460,7 +467,7 @@ namespace BCIM_Tool
                             }));
 
                             count++;
-                            if (count > 3)
+                            if (count > 4)
                             {
                                 count = 0;
                                 diagnosticStatus = false;
@@ -740,7 +747,7 @@ namespace BCIM_Tool
                 read += buffer[i].ToString("X2");
                 read += " ";
             }
-            //Console.WriteLine("R => " + read);
+            Console.WriteLine("RX => " + read);
 
 
             Dispatcher.Invoke(new Action(() =>
@@ -765,13 +772,22 @@ namespace BCIM_Tool
                                 LB_board_status.Content = "Get Data Success";
                                 LB_board_status.Background = Brushes.Green;
                                 Diagnostic();                               
-                            }
-                            
+                            }                            
+                        }
+
+                        if (buffer[1] == 118)
+                        {
+                            emc_version = "";
+                            emc_version += buffer[2].ToString("X");
+                            emc_version += ".";
+                            emc_version += buffer[3].ToString("X");
+                            LB_emc_firmware.Content = emc_version;
                         }
 
                         if (buffer[1] != 125)
                         {
                             ErrorTest();
+                            ShowLEDFail();
                         }
 
                         if (RB_roll_mode.IsChecked == true)
@@ -787,11 +803,6 @@ namespace BCIM_Tool
                         TB_emc_monitor.ScrollToEnd();
                         TB_Diagnostic_monitor.AppendText(GetTime() + "\tRX => " + read + error + "\n");
                         TB_Diagnostic_monitor.ScrollToEnd();
-
-                        if(buffer[1] != 125)
-                        {
-                            ShowLEDFail();
-                        }
                         
                         ShowLEDVF();
 
@@ -859,9 +870,7 @@ namespace BCIM_Tool
                     LB_p_n.Content = p_n_1 + p_n_2;
 
                     break;
-            }
-            
-            
+            }        
         }
 
         /*Error Test*/
